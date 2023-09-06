@@ -1,22 +1,5 @@
 # -*- coding: utf-8 -*-
 from applications import db
-import uuid
-
-
-class UUID4Type(db.TypeDecorator):
-    '''SQLite не имеет встроенного типа UUID4, поэтому создаём этот тип
-    самостоятельно, внутри самой БД это будет строка длиной 36'''
-    impl = db.String(36)
-
-    def process_bind_param(self, value, dialect):
-        if value is not None:
-            return str(value)
-        return None
-
-    def process_result_value(self, value, dialect):
-        if value is not None:
-            return uuid.UUID(value)
-        return None
 
 
 class Users(db.Model):
@@ -25,8 +8,7 @@ class Users(db.Model):
 
 
 class StuffApplications(db.Model):
-    id = db.Column(UUID4Type, primary_key=True,
-                   default=uuid.uuid4, unique=True)
+    id = db.Column(db.String(36), primary_key=True, unique=True)
     date = db.Column(db.Date)
     is_accepted = db.Column(db.Boolean, default=False)
     total_sum = db.Column(db.Float)
@@ -37,9 +19,8 @@ class StuffApplications(db.Model):
 
 
 class StuffApplicationRows(db.Model):
-    id = db.Column(UUID4Type, primary_key=True,
-                   default=uuid.uuid4, unique=True)
-    stuff_application_id = db.Column(UUID4Type)
+    id = db.Column(db.String(36), primary_key=True, unique=True)
+    stuff_application_id = db.Column(db.String(36))
     position = db.Column(db.Integer)
     subject = db.Column(db.String(150))
     count = db.Column(db.Integer)
@@ -47,8 +28,7 @@ class StuffApplicationRows(db.Model):
 
 
 class MoneyApplications(db.Model):
-    id = db.Column(UUID4Type, primary_key=True,
-                   default=uuid.uuid4, unique=True)
+    id = db.Column(db.String(36), primary_key=True, unique=True)
     date = db.Column(db.Date)
     is_accepted = db.Column(db.Boolean, default=False)
     is_issued = db.Column(db.Boolean, default=False)
