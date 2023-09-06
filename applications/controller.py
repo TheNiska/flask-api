@@ -131,3 +131,98 @@ def create_application(json_data):
     }
 
     return jsonify(result)
+
+
+def get_stuff_application_by_id(app_id: str):
+    stuff_app = StuffApplications.query.get(app_id)
+    stuff_rows = (StuffApplicationRows.query
+                  .filter_by(stuff_application_id=stuff_app.id)
+                  .order_by(StuffApplicationRows.position)
+                  .all())
+
+    result = {
+        'id': stuff_app.id,
+        'date': stuff_app.date.strftime('%d.%m.%Y'),
+        'is_accepted': stuff_app.is_accepted,
+        'total_sum': stuff_app.total_sum,
+        'author': {
+            'id': stuff_app.author.id,
+            'username': stuff_app.author.username
+        },
+        'rows': [
+            {
+                'position': item.position,
+                'subject': item.subject,
+                'count': item.count,
+                'price': item.price
+
+            }
+            for item in stuff_rows
+        ]
+    }
+
+    return jsonify(result)
+
+
+def put_stuff_application_by_id(app_id: str, json_data):
+    '''Удалять только строки, или заново и всю карточку новую создавать
+    с новыми id и датой?'''
+    stuff_app = StuffApplications.query.get(app_id)
+    if stuff_app.is_accepted:
+        return 0
+
+    # Удаляем старые строки товаров -----------------------------------------
+    stuff_rows = (StuffApplicationRows.query
+                  .filter_by(stuff_application_id=stuff_app.id)
+                  .order_by(StuffApplicationRows.position)
+                  .all())
+    for row in stuff_rows:
+        db.session.delete(row)
+    db.session.commit()
+    # -----------------------------------------------------------------------
+
+    rows = json_data['rows']
+    total_sum = 0
+    # Записываем в базу данных StuffApplicationRows новые строки ------------
+    for row in rows:
+        new_row = StuffApplicationRows()
+        new_row.id = str(uuid.uuid4())
+        new_row.stuff_application_id = stuff_app.id
+        new_row.position = row["position"]
+        new_row.subject = row["subject"]
+        new_row.price = row["price"]
+        new_row.count = row["count"]
+        total_sum += row["price"]
+        db.session.add(new_row)
+    # -----------------------------------------------------------------------
+
+    stuff_app.total_sum = total_sum
+    db.session.commit()
+
+    # используем уже написанную ранее функция для ответа
+    result = get_stuff_application_by_id(stuff_app.id)
+    return result
+
+
+def patch_stuff_application_by_id(app_id: str):
+    stuff_app = StuffApplications.query.get(app_id)
+    stuff_app.is_accepted = True
+    db.session.commit()
+    result = get_stuff_application_by_id(stuff_app.id)
+    return result
+
+
+def delete_stuff_application_by_id(app_id: str):
+    '''Удаляем карточу и связанные с ней строки'''
+    stuff_app = StuffApplications.query.get(app_id)
+    current_id = stuff_app.id
+    db.session.delete(stuff_app)
+
+    stuff_rows = (StuffApplicationRows.query
+                  .filter_by(stuff_application_id=current_id)
+                  .order_by(StuffApplicationRows.position)
+                  .all())
+    for row in stuff_rows:
+        db.session.delete(row)
+    db.session.commit()
+    return 1
