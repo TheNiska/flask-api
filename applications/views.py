@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 from applications import app
-from flask import Blueprint, request, url_for, current_app, jsonify
-import json
-from applications.model import DBFuncs
+from flask import Blueprint, request, jsonify
 import applications.controller as Controller
 
 main_bp = Blueprint('main_bp', __name__, url_prefix="/applications")
+
+'''Роут-функции используют функции из модуля contorller.py, импортированного
+под названием Controller. Все функции из controller.py имеею такое же
+название, как соответствующая им роут-функции. Для лучшей читаемости и
+поддержки каждая роут-функция имеет только один допустимый метод
+'''
 
 
 # -------- STUFF -------------------------------------------------------------
@@ -29,7 +33,7 @@ def post_stuff_application():
     if json_data is None:
         return jsonify({'error': 'Invalid JSON data'}), 400
 
-    response = Controller.create_application(json_data)
+    response = Controller.post_stuff_application(json_data)
     return response
 # ----------------------------------------------------------------------------
 

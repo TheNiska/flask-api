@@ -1,33 +1,57 @@
 import requests
+import random
 
-test_data = {
-    'rows': [
-        {
-            'position': 1,
-            'subject': "TV",
-            'count': 3,
-            'price': 50400
-        },
-        {
-            'position': 2,
-            'subject': "SomeThing",
-            'count': 2,
-            'price': 12090
-        },
-        {
-            'position': 3,
-            'subject': "omg",
-            'count': 9,
-            'price': 458
-        },
+subjects = ['car', 'house', 'book', 'sofa', 'plane', 'gift', 'oskar', 'PC',
+            'notebook', 'paper', 'router', 'pen', 'TV', 'phone', 'job',
+            'lamp', 'cat', 'dog', 'eggs', 'test_item', 'milk', 'coffee']
 
-    ]
-}
+
+def generete_data(subjects):
+    test_data = {
+        'rows': [
+            {
+                'position': 1,
+                'subject': random.choice(subjects),
+                'count': random.randint(1, 10),
+                'price': random.randint(50, 100000) + random.randint(0, 99) * 0.01
+            },
+            {
+                'position': 2,
+                'subject': random.choice(subjects),
+                'count': random.randint(1, 10),
+                'price': random.randint(50, 100000) + random.randint(0, 99) * 0.01
+            },
+            {
+                'position': 3,
+                'subject': random.choice(subjects),
+                'count': random.randint(1, 10),
+                'price': random.randint(50, 100000) + random.randint(0, 99) * 0.01
+            },
+
+        ]
+    }
+    return test_data
+
 
 test_money = {
     'is_report_not_need': False,
     'subject': 'Car',
     'amount': 34000.40
+}
+test_money1 = {
+    'is_report_not_need': False,
+    'subject': 'Bus',
+    'amount': 5550000.40
+}
+test_money2 = {
+    'is_report_not_need': False,
+    'subject': 'House',
+    'amount': 90349444.40
+}
+test_money3 = {
+    'is_report_not_need': False,
+    'subject': 'Chair',
+    'amount': 900.40
 }
 
 
@@ -84,5 +108,18 @@ def post_money(json_data):
         print("Error:", response.status_code, response.text)
 
 
+def put_money_by_id(json_data):
+    str_id = '5d05c792-9c8d-458f-b2ff-67c1aae28367'
+    url = "http://192.168.0.11:5000/applications/money/" + str_id
+    response = requests.put(url, json=json_data)
+
+    if response.status_code == 200:
+        print(response.json())
+    else:
+        print("Error:", response.status_code, response.text)
+
+
 if __name__ == '__main__':
-    post_money(test_money)
+    # Тут прописать нужную функцию
+    for i in range(70):
+        post_new_application(generete_data(subjects))

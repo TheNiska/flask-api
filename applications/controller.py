@@ -6,15 +6,12 @@ from applications.model import (Users,
                                 MoneyApplications,
                                 DBFuncs)
 from flask import jsonify
-import json
 import uuid
 from datetime import datetime
 from pytz import timezone
 
 
 def get_stuff_applications(page: int, rows_per_page: int, order: str):
-    '''Функция возвращает json ответ'''
-
     query = StuffApplications.query
 
     if rows_per_page < 0:
@@ -23,15 +20,15 @@ def get_stuff_applications(page: int, rows_per_page: int, order: str):
     if order == 'is_accepted':
         query = query.order_by(StuffApplications.is_accepted)
     elif order == 'id':
-        query == query.order_by(StuffApplications.id)
+        query = query.order_by(StuffApplications.id)
     elif order == 'total_sum':
-        query == query.order_by(StuffApplications.total_sum)
+        query = query.order_by(StuffApplications.total_sum)
     elif order == 'author_id':
-        query == query.order_by(StuffApplications.author_id)
+        query = query.order_by(StuffApplications.author_id)
     elif order == 'date':
-        query == query.order_by(StuffApplications.date)
+        query = query.order_by(StuffApplications.date)
     else:
-        query == query.order_by(StuffApplications.date)
+        query = query.order_by(StuffApplications.date)
 
     # Вычисляем индексы элементов для пагинации
     if rows_per_page is not None:
@@ -63,18 +60,12 @@ def get_stuff_applications(page: int, rows_per_page: int, order: str):
     return jsonify(result)
 
 
-def add_user(username: str) -> None:
-    user = Users(username=username)
-    db.session.add(user)
-    db.session.commit()
-
-
-def create_application(json_data):
+def post_stuff_application(json_data):
     tz = timezone('Europe/Moscow')
 
-    # -- ТРЕБУДЕТСЯ ОПРЕДЕЛЕНИЕ АВТОРСТВА ЧЕРЕЗ ВНЕШНИЙ МОДУЛЬ --
+    # -- ТРЕБУЕТСЯ ОПРЕДЕЛЕНИЕ АВТОРСТВА ЧЕРЕЗ ВНЕШНИЙ МОДУЛЬ --
     author_id = 2
-    # -- ТРЕБУДЕТСЯ ОПРЕДЕЛЕНИЕ АВТОРСТВА ЧЕРЕЗ ВНЕШНИЙ МОДУЛЬ --
+    # -- ТРЕБУЕТСЯ ОПРЕДЕЛЕНИЕ АВТОРСТВА ЧЕРЕЗ ВНЕШНИЙ МОДУЛЬ --
 
     rows = json_data["rows"]
     total_sum = 0
@@ -240,23 +231,23 @@ def get_money(page: int, rows_per_page: int, order: str):
     if order == 'is_accepted':
         query = query.order_by(MoneyApplications.is_accepted)
     elif order == 'id':
-        query == query.order_by(MoneyApplications.id)
+        query = query.order_by(MoneyApplications.id)
     elif order == 'is_issued':
-        query == query.order_by(MoneyApplications.is_issued)
+        query = query.order_by(MoneyApplications.is_issued)
     elif order == 'is_report_not_need':
-        query == query.order_by(MoneyApplications.is_report_not_need)
+        query = query.order_by(MoneyApplications.is_report_not_need)
     elif order == 'date':
-        query == query.order_by(MoneyApplications.date)
+        query = query.order_by(MoneyApplications.date)
     elif order == 'subject':
-        query == query.order_by(MoneyApplications.subject)
+        query = query.order_by(MoneyApplications.subject)
     elif order == 'amount':
-        query == query.order_by(MoneyApplications.amount)
+        query = query.order_by(MoneyApplications.amount)
     elif order == 'report_file_name':
-        query == query.order_by(MoneyApplications.report_file_name)
+        query = query.order_by(MoneyApplications.report_file_name)
     elif order == 'author_id':
-        query == query.order_by(MoneyApplications.author_id)
+        query = query.order_by(MoneyApplications.author_id)
     else:
-        query == query.order_by(MoneyApplications.date)
+        query = query.order_by(MoneyApplications.date)
 
     # Вычисляем индексы элементов для пагинации
     if rows_per_page is not None:
@@ -377,3 +368,9 @@ def delete_money_by_id(money_id: str):
     db.session.delete(money)
     db.session.commit()
     return 1
+
+
+def add_user(username: str) -> None:
+    user = Users(username=username)
+    db.session.add(user)
+    db.session.commit()
