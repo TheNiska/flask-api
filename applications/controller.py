@@ -81,7 +81,7 @@ def post_stuff_application(json_data):
         new_row.subject = row["subject"]
         new_row.price = row["price"]
         new_row.count = row["count"]
-        total_sum += row["price"]
+        total_sum += row["price"] * row['count']
         db.session.add(new_row)
     # -----------------------------------------------------------------------
 
@@ -163,8 +163,6 @@ def get_stuff_application_by_id(app_id: str):
 
 
 def put_stuff_application_by_id(app_id: str, json_data):
-    '''Удалять только строки, или заново и всю карточку новую создавать
-    с новыми id и датой?'''
     stuff_app = StuffApplications.query.get(app_id)
 
     # Обработка 404 ошибки
@@ -196,11 +194,12 @@ def put_stuff_application_by_id(app_id: str, json_data):
         new_row.subject = row["subject"]
         new_row.price = row["price"]
         new_row.count = row["count"]
-        total_sum += row["price"]
+        total_sum += row["price"] * row["count"]
         db.session.add(new_row)
     # -----------------------------------------------------------------------
 
     stuff_app.total_sum = total_sum
+    stuff_app.date = datetime.now(tz)
     db.session.commit()
 
     # используем уже написанную ранее функция для ответа
@@ -315,7 +314,6 @@ def post_money(json_data):
     new_money.is_report_not_need = json_data['is_report_not_need']
     new_money.subject = json_data['subject']
     new_money.amount = json_data['amount']
-    new_money.report_file_name = ""
     new_money.author_id = author_id
 
     db.session.add(new_money)
@@ -378,6 +376,7 @@ def put_money_by_id(money_id: str, json_data):
     money.is_report_not_need = json_data['is_report_not_need']
     money.subject = json_data['subject']
     money.amount = json_data['amount']
+    money.date = datetime.now(tz)
     db.session.commit()
     return get_money_by_id(money.id)
 

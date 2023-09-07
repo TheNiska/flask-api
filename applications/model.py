@@ -35,7 +35,7 @@ class MoneyApplications(db.Model):
     is_report_not_need = db.Column(db.Boolean, default=False)
     subject = db.Column(db.String(150))
     amount = db.Column(db.Float)
-    report_file_name = db.Column(db.Text(64), unique=True)
+    report_file_name = db.Column(db.Text(64), unique=True, default=None)
 
     # Указываем autor_id как ForeignKey и ссылаемся на модель Users
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))

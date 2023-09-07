@@ -121,5 +121,4 @@ def put_money_by_id(json_data):
 
 if __name__ == '__main__':
     # Тут прописать нужную функцию
-    for i in range(70):
-        post_new_application(generete_data(subjects))
+    post_money(test_money2)
