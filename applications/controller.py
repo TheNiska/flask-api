@@ -3,12 +3,13 @@ from applications import db
 from applications.model import (Users,
                                 StuffApplications,
                                 StuffApplicationRows,
-                                MoneyApplications,
-                                DBFuncs)
-from flask import jsonify
+                                MoneyApplications)
 import uuid
 from datetime import datetime
 from pytz import timezone
+
+'''Все фукнции в этом модуле возвращают первым аргументом словарь, а вторым
+код ошибки либо код 200 успешного ответа.'''
 
 
 def get_stuff_applications(page: int, rows_per_page: int, order: str):
@@ -57,7 +58,7 @@ def get_stuff_applications(page: int, rows_per_page: int, order: str):
         ]
     }
 
-    return jsonify(result)
+    return result, 200
 
 
 def post_stuff_application(json_data):
@@ -122,12 +123,16 @@ def post_stuff_application(json_data):
         ]
     }
 
-    return jsonify(result)
+    return result, 200
 
 
 def get_stuff_application_by_id(app_id: str):
-    '''Обработать ошибку если не найдено'''
     stuff_app = StuffApplications.query.get(app_id)
+
+    # Обработка 404 ошибки
+    if not stuff_app:
+        return {'error': 'Not found'}, 404
+
     stuff_rows = (StuffApplicationRows.query
                   .filter_by(stuff_application_id=stuff_app.id)
                   .order_by(StuffApplicationRows.position)
@@ -154,15 +159,21 @@ def get_stuff_application_by_id(app_id: str):
         ]
     }
 
-    return jsonify(result)
+    return result, 200
 
 
 def put_stuff_application_by_id(app_id: str, json_data):
     '''Удалять только строки, или заново и всю карточку новую создавать
     с новыми id и датой?'''
     stuff_app = StuffApplications.query.get(app_id)
+
+    # Обработка 404 ошибки
+    if not stuff_app:
+        return {'error': 'Not found'}, 404
+
+    # Обработка 405 ошибки
     if stuff_app.is_accepted:
-        return 0
+        return {'error': 'Editing is prohibited'}, 405
 
     # Удаляем старые строки товаров -----------------------------------------
     stuff_rows = (StuffApplicationRows.query
@@ -193,12 +204,16 @@ def put_stuff_application_by_id(app_id: str, json_data):
     db.session.commit()
 
     # используем уже написанную ранее функция для ответа
-    result = get_stuff_application_by_id(stuff_app.id)
-    return result
+    return get_stuff_application_by_id(stuff_app.id)
 
 
 def patch_stuff_application_by_id(app_id: str):
     stuff_app = StuffApplications.query.get(app_id)
+
+    # Обработка 404 ошибки
+    if not stuff_app:
+        return {'error': 'Not found'}, 404
+
     stuff_app.is_accepted = True
     db.session.commit()
     result = get_stuff_application_by_id(stuff_app.id)
@@ -208,7 +223,12 @@ def patch_stuff_application_by_id(app_id: str):
 def delete_stuff_application_by_id(app_id: str):
     '''Удаляем карточу и связанные с ней строки'''
     stuff_app = StuffApplications.query.get(app_id)
+
+    # Обработка 404 ошибки
+    if not stuff_app:
+        return {'error': 'Not found'}, 404
     current_id = stuff_app.id
+
     db.session.delete(stuff_app)
 
     stuff_rows = (StuffApplicationRows.query
@@ -218,7 +238,7 @@ def delete_stuff_application_by_id(app_id: str):
     for row in stuff_rows:
         db.session.delete(row)
     db.session.commit()
-    return 1
+    return {'Success': True}, 200
 
 
 def get_money(page: int, rows_per_page: int, order: str):
@@ -277,7 +297,7 @@ def get_money(page: int, rows_per_page: int, order: str):
         ]
     }
 
-    return jsonify(result)
+    return result, 200
 
 
 def post_money(json_data):
@@ -316,12 +336,15 @@ def post_money(json_data):
         }
     }
 
-    return jsonify(result)
+    return result, 200
 
 
 def get_money_by_id(money_id: str):
-    '''Обработать ошибку если не найдено'''
     money = MoneyApplications.query.get(money_id)
+
+    # Обработка 404 ошибки
+    if not money:
+        return {'error': 'Not found'}, 404
 
     result = {
         'id': money.id,
@@ -337,37 +360,50 @@ def get_money_by_id(money_id: str):
         }
     }
 
-    return jsonify(result)
+    return result, 200
 
 
 def put_money_by_id(money_id: str, json_data):
     '''Обновляется ли дата'''
     money = MoneyApplications.query.get(money_id)
+
+    # Обработка 404 ошибки
+    if not money:
+        return {'error': 'Not found'}, 404
+
+    # Обработка 405 ошибки
     if money.is_accepted:
-        return 0
+        return {'error': 'Editing is prohibited'}, 405
 
     money.is_report_not_need = json_data['is_report_not_need']
     money.subject = json_data['subject']
     money.amount = json_data['amount']
     db.session.commit()
-
-    result = get_money_by_id(money.id)
-    return result
+    return get_money_by_id(money.id)
 
 
 def patch_money_by_id(money_id: str):
     money = MoneyApplications.query.get(money_id)
+
+    # Обработка 404 ошибки
+    if not money:
+        return {'error': 'Not found'}, 404
+
     money.is_accepted = True
     db.session.commit()
-    result = get_money_by_id(money.id)
-    return result
+    return get_money_by_id(money.id)
 
 
 def delete_money_by_id(money_id: str):
     money = MoneyApplications.query.get(money_id)
+
+    # Обработка 404 ошибки
+    if not money:
+        return {'error': 'Not found'}, 404
+
     db.session.delete(money)
     db.session.commit()
-    return 1
+    return {'Success': True}, 200
 
 
 def add_user(username: str) -> None:
