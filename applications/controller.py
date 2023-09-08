@@ -7,9 +7,27 @@ from applications.model import (Users,
 import uuid
 from datetime import datetime
 from pytz import timezone
+from dataclasses import dataclass, asdict
+from typing import Dict
 
-'''Все фукнции в этом модуле возвращают первым аргументом словарь, а вторым
-код ошибки либо код 200 успешного ответа.'''
+
+@dataclass(kw_only=True)
+class Stuff:
+    id: str = str(uuid.uuid4())
+    date: str = datetime.now(tz)
+    is_accepted: bool = False
+    total_sum: float
+    author_id: int
+
+
+@dataclass(kw_only=True)
+class StuffRow:
+    id: str = str(uuid.uuid4())
+    stuff_application_id: str
+    position: int
+    subject: str
+    count: int
+    price: float
 
 
 def get_stuff_applications(page: int, rows_per_page: int, order: str):
@@ -63,42 +81,24 @@ def get_stuff_applications(page: int, rows_per_page: int, order: str):
 
 def post_stuff_application(json_data):
     tz = timezone('Europe/Moscow')
-
-    # -- ТРЕБУЕТСЯ ОПРЕДЕЛЕНИЕ АВТОРСТВА ЧЕРЕЗ ВНЕШНИЙ МОДУЛЬ --
-    author_id = 2
-    # -- ТРЕБУЕТСЯ ОПРЕДЕЛЕНИЕ АВТОРСТВА ЧЕРЕЗ ВНЕШНИЙ МОДУЛЬ --
+    usr_id = 2
 
     rows = json_data["rows"]
     total_sum = 0
-    application_uuid = str(uuid.uuid4())  # создание uuid4 для заявки
+    app_uuid = str(uuid.uuid4())
 
-    # Сначала записываем в базу данных StuffApplicationRows строки товаров --
     for row in rows:
-        new_row = StuffApplicationRows()
-        new_row.id = str(uuid.uuid4())
-        new_row.stuff_application_id = application_uuid
-        new_row.position = row["position"]
-        new_row.subject = row["subject"]
-        new_row.price = row["price"]
-        new_row.count = row["count"]
-        total_sum += row["price"] * row['count']
-        db.session.add(new_row)
-    # -----------------------------------------------------------------------
+        new_row = StuffRow(stuff_application_id=app_uuid, **row)
+        total_sum += row["price"] * row["count"]
 
-    # Затем записываем в базу данных StuffApplications саму заявку ----------
-    new_application = StuffApplications()
-    new_application.id = application_uuid
-    new_application.date = datetime.now(tz)
-    new_application.total_sum = total_sum
-    new_application.author_id = author_id
-    db.session.add(new_application)
-    # -----------------------------------------------------------------------
+    app_obj = Stuff(id=app_uuid, total_sum=total_sum, author_id=usr_id)
+    app_db = StuffApplications(**asdict(app_obj))
+    db.session.add(app_db)
     db.session.commit()
 
-    # Далее работа с ответом сервера
-    stuff_app = StuffApplications.query.get(application_uuid)
+    stuff_app = StuffApplications.query.get(app_uuid)
     stuff_rows = (StuffApplicationRows.query
-                  .filter_by(stuff_application_id=application_uuid)
+                  .filter_by(stuff_application_id=app_uuid)
                   .order_by(StuffApplicationRows.position)
                   .all())
 
