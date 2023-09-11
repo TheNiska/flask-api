@@ -13,6 +13,14 @@ from dataclasses import dataclass, asdict
 tz = timezone('Europe/Moscow')
 
 
+def get_ordered_query(model, order):
+    query = model.query
+    order_attr = getattr(model, order, None)
+    if order_attr is not None:
+        query = query.order_by(order_attr)
+    return query
+
+
 @dataclass(kw_only=True)
 class Stuff:
     id: str = None
@@ -43,25 +51,10 @@ class StuffRow:
 
 
 def get_stuff_applications(page: int, rows_per_page: int, order: str):
-    query = StuffApplications.query
-    print(type(query))
-    print(dir(StuffApplications))
+    query = get_ordered_query(StuffApplications, order)  # query with order
 
     if rows_per_page < 0:
         rows_per_page = None
-
-    if order == 'is_accepted':
-        query = query.order_by(StuffApplications.is_accepted)
-    elif order == 'id':
-        query = query.order_by(StuffApplications.id)
-    elif order == 'total_sum':
-        query = query.order_by(StuffApplications.total_sum)
-    elif order == 'author_id':
-        query = query.order_by(StuffApplications.author_id)
-    elif order == 'date':
-        query = query.order_by(StuffApplications.date)
-    else:
-        query = query.order_by(StuffApplications.date)
 
     # Вычисляем индексы элементов для пагинации
     if rows_per_page is not None:
@@ -71,7 +64,7 @@ def get_stuff_applications(page: int, rows_per_page: int, order: str):
 
     items = query.all()
 
-    # Преобразуем результат в формат json
+
     result = {
         'page': page,
         'rows_per_page': rows_per_page,
@@ -237,32 +230,10 @@ def delete_stuff_application_by_id(app_id: str):
 
 
 def get_money(page: int, rows_per_page: int, order: str):
-
-    query = MoneyApplications.query
+    query = get_ordered_query(MoneyApplications, order)
 
     if rows_per_page < 0:
         rows_per_page = None
-
-    if order == 'is_accepted':
-        query = query.order_by(MoneyApplications.is_accepted)
-    elif order == 'id':
-        query = query.order_by(MoneyApplications.id)
-    elif order == 'is_issued':
-        query = query.order_by(MoneyApplications.is_issued)
-    elif order == 'is_report_not_need':
-        query = query.order_by(MoneyApplications.is_report_not_need)
-    elif order == 'date':
-        query = query.order_by(MoneyApplications.date)
-    elif order == 'subject':
-        query = query.order_by(MoneyApplications.subject)
-    elif order == 'amount':
-        query = query.order_by(MoneyApplications.amount)
-    elif order == 'report_file_name':
-        query = query.order_by(MoneyApplications.report_file_name)
-    elif order == 'author_id':
-        query = query.order_by(MoneyApplications.author_id)
-    else:
-        query = query.order_by(MoneyApplications.date)
 
     # Вычисляем индексы элементов для пагинации
     if rows_per_page is not None:
