@@ -8,30 +8,44 @@ import uuid
 from datetime import datetime
 from pytz import timezone
 from dataclasses import dataclass, asdict
-from typing import Dict
+
+
+tz = timezone('Europe/Moscow')
 
 
 @dataclass(kw_only=True)
 class Stuff:
-    id: str = str(uuid.uuid4())
-    date: str = datetime.now(tz)
+    id: str = None
+    date: str = None
     is_accepted: bool = False
-    total_sum: float
+    total_sum: float = 0
     author_id: int
+
+    def __post_init__(self):
+        if self.id is None:
+            self.id = str(uuid.uuid4())
+        if self.date is None:
+            self.date = datetime.now(tz)
 
 
 @dataclass(kw_only=True)
 class StuffRow:
-    id: str = str(uuid.uuid4())
+    id: str = None
     stuff_application_id: str
     position: int
     subject: str
     count: int
     price: float
 
+    def __post_init__(self):
+        if self.id is None:
+            self.id = str(uuid.uuid4())
+
 
 def get_stuff_applications(page: int, rows_per_page: int, order: str):
     query = StuffApplications.query
+    print(type(query))
+    print(dir(StuffApplications))
 
     if rows_per_page < 0:
         rows_per_page = None
@@ -80,50 +94,32 @@ def get_stuff_applications(page: int, rows_per_page: int, order: str):
 
 
 def post_stuff_application(json_data):
-    tz = timezone('Europe/Moscow')
     usr_id = 2
+    rows = json_data["rows"]  # getting data from json
 
-    rows = json_data["rows"]
+    new_app = Stuff(author_id=usr_id)  # generating new Stuff dataclass
+    new_app_db = StuffApplications(**asdict(new_app))
+    db.session.add(new_app_db)
+
+    # generating new rows
     total_sum = 0
-    app_uuid = str(uuid.uuid4())
-
     for row in rows:
-        new_row = StuffRow(stuff_application_id=app_uuid, **row)
+        new_row = StuffRow(stuff_application_id=new_app.id, **row)
+        new_row_db = StuffApplicationRows(**asdict(new_row))
         total_sum += row["price"] * row["count"]
+        db.session.add(new_row_db)
 
-    app_obj = Stuff(id=app_uuid, total_sum=total_sum, author_id=usr_id)
-    app_db = StuffApplications(**asdict(app_obj))
-    db.session.add(app_db)
-    db.session.commit()
+    new_app_db.total_sum = total_sum
+    try:
+        db.session.commit()
+    except db.exc.IntegrityError:
+        db.session.rollback()
+        return {'error': 'Database Integrity Error'}, 500
+    except Exception:
+        db.session.rollback()
+        return {'error': 'Error while writing to database'}, 500
 
-    stuff_app = StuffApplications.query.get(app_uuid)
-    stuff_rows = (StuffApplicationRows.query
-                  .filter_by(stuff_application_id=app_uuid)
-                  .order_by(StuffApplicationRows.position)
-                  .all())
-
-    result = {
-        'id': stuff_app.id,
-        'date': stuff_app.date.strftime('%d.%m.%Y'),
-        'is_accepted': stuff_app.is_accepted,
-        'total_sum': stuff_app.total_sum,
-        'author': {
-            'id': stuff_app.author.id,
-            'username': stuff_app.author.username
-        },
-        'rows': [
-            {
-                'position': item.position,
-                'subject': item.subject,
-                'count': item.count,
-                'price': item.price
-
-            }
-            for item in stuff_rows
-        ]
-    }
-
-    return result, 200
+    return get_stuff_application_by_id(new_app.id)
 
 
 def get_stuff_application_by_id(app_id: str):

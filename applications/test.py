@@ -56,7 +56,7 @@ test_money3 = {
 
 
 def post_new_application(json_data):
-    url = "http://192.168.0.11:5000/applications/stuff"
+    url = "http://192.168.0.10:5000/applications/stuff"
     response = requests.post(url, json=json_data)
 
     if response.status_code == 200:
@@ -121,4 +121,4 @@ def put_money_by_id(json_data):
 
 if __name__ == '__main__':
     # Тут прописать нужную функцию
-    post_money(test_money2)
+    post_new_application(generete_data(subjects))

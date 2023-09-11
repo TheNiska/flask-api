@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 from applications import db
+from abc import ABC, abstractmethod
 
 
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100))
+
+    @classmethod
+    def get_fields_list(cls):
+        return {'id', 'username'}
 
 
 class StuffApplications(db.Model):
@@ -17,6 +22,10 @@ class StuffApplications(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users')
 
+    @classmethod
+    def get_fields_list(cls):
+        return {'id', 'date', 'is_accepted', 'total_sum', 'author_id'}
+
 
 class StuffApplicationRows(db.Model):
     id = db.Column(db.String(36), primary_key=True, unique=True)
@@ -25,6 +34,11 @@ class StuffApplicationRows(db.Model):
     subject = db.Column(db.String(150))
     count = db.Column(db.Integer)
     price = db.Column(db.Float)
+
+    @classmethod
+    def get_fields_list(cls):
+        return {'id', 'stuff_application_id', 'position',
+                'subject', 'count', 'price'}
 
 
 class MoneyApplications(db.Model):
@@ -40,6 +54,11 @@ class MoneyApplications(db.Model):
     # Указываем autor_id как ForeignKey и ссылаемся на модель Users
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users')
+
+    @classmethod
+    def get_fields_list(cls):
+        return {'id', 'date', 'is_accepted', 'is_issued', 'is_report_not_need',
+                'subject', 'amount', 'report_file_name', 'author_id'}
 
 
 class DBFuncs:
