@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from applications import db
-from abc import ABC, abstractmethod
 
 
 class Users(db.Model):
@@ -12,7 +11,7 @@ class StuffApplications(db.Model):
     id = db.Column(db.String(36), primary_key=True, unique=True)
     date = db.Column(db.Date)
     is_accepted = db.Column(db.Boolean, default=False)
-    total_sum = db.Column(db.Float)
+    total_sum = db.Column(db.Float, default=0)
 
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users')
@@ -25,11 +24,6 @@ class StuffApplicationRows(db.Model):
     subject = db.Column(db.String(150))
     count = db.Column(db.Integer)
     price = db.Column(db.Float)
-
-    @classmethod
-    def get_fields_list(cls):
-        return {'id', 'stuff_application_id', 'position',
-                'subject', 'count', 'price'}
 
 
 class MoneyApplications(db.Model):
@@ -46,14 +40,18 @@ class MoneyApplications(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users')
 
-    @classmethod
-    def get_fields_list(cls):
-        return {'id', 'date', 'is_accepted', 'is_issued', 'is_report_not_need',
-                'subject', 'amount', 'report_file_name', 'author_id'}
-
 
 class DBFuncs:
-    # Функция для работы с БД в целом
     @classmethod
     def create(cls):
         db.create_all()
+
+    @classmethod
+    def delete_data(cls):
+        try:
+            db.session.query(StuffApplicationRows).delete()
+            db.session.query(StuffApplications).delete()
+            db.session.query(MoneyApplications).delete()
+            db.session.commit()
+        except Exception:
+            db.session.rollback()

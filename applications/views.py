@@ -1,17 +1,9 @@
 # -*- coding: utf-8 -*-
 from applications import app
 from flask import Blueprint, request, jsonify
-import applications.controller as Controller
+from applications.controller import Api
 
 main_bp = Blueprint('main_bp', __name__, url_prefix="/applications")
-
-'''Роут-функции используют функции из модуля contorller.py, импортированного
-под названием Controller. Все функции из controller.py имеею такое же
-название, как соответствующая им роут-функции. Для лучшей читаемости и
-поддержки каждая роут-функция имеет только один допустимый метод. Все роуты
-берут ответ от Controller, применяют к нему jsonify и возвращают ответ в json
-формате с кодом ошибки и заголовком HEADER'''
-
 HEADER = {'Content-Type': 'application/json; charset=utf-8'}
 
 
@@ -20,9 +12,11 @@ HEADER = {'Content-Type': 'application/json; charset=utf-8'}
 def get_stuff_applications():
     page = int(request.args.get('page', 1))
     rows_per_page = int(request.args.get('rows_per_page', 25))
+    if rows_per_page <= 0:
+        rows_per_page = None
     order = request.args.get('order', 'date')
 
-    response, status_code = (Controller.get_stuff_applications(page,
+    response, status_code = (Api.get_stuff_applications(page,
                              rows_per_page, order))
 
     return (jsonify(response), status_code, HEADER)
@@ -35,7 +29,7 @@ def post_stuff_application():
     if json_data is None:
         return jsonify({'error': 'Invalid JSON data'}), 400
 
-    response, status_code = Controller.post_stuff_application(json_data)
+    response, status_code = Api.post_stuff_application(json_data)
     return (jsonify(response), status_code, HEADER)
 # ----------------------------------------------------------------------------
 
@@ -43,7 +37,7 @@ def post_stuff_application():
 # --------STUFF WITH ID-------------------------------------------------------
 @main_bp.route('/stuff/<string:app_id>', methods=['GET'])
 def get_stuff_application_by_id(app_id):
-    response, status_code = Controller.get_stuff_application_by_id(app_id)
+    response, status_code = Api.get_stuff_application_by_id(app_id)
     return (jsonify(response), status_code, HEADER)
 
 
@@ -54,7 +48,7 @@ def put_stuff_application_by_id(app_id):
     if json_data is None:
         return jsonify({'error': 'Invalid JSON data'}), 400
 
-    response, status_code = (Controller
+    response, status_code = (Api
                              .put_stuff_application_by_id(app_id, json_data))
 
     return (jsonify(response), status_code, HEADER)
@@ -62,13 +56,13 @@ def put_stuff_application_by_id(app_id):
 
 @main_bp.route('/stuff/<string:app_id>', methods=['PATCH'])
 def patch_stuff_application_by_id(app_id):
-    response, status_code = Controller.patch_stuff_application_by_id(app_id)
+    response, status_code = Api.patch_stuff_application_by_id(app_id)
     return (jsonify(response), status_code, HEADER)
 
 
 @main_bp.route('/stuff/<string:app_id>', methods=['DELETE'])
 def delete_stuff_application_by_id(app_id):
-    response, status_code = Controller.delete_stuff_application_by_id(app_id)
+    response, status_code = Api.delete_stuff_application_by_id(app_id)
     return (jsonify(response), status_code, HEADER)
 # ----------------------------------------------------------------------------
 
@@ -80,7 +74,7 @@ def get_money():
     rows_per_page = int(request.args.get('rows_per_page', 25))
     order = request.args.get('order', 'date')
 
-    response, status_code = Controller.get_money(page, rows_per_page, order)
+    response, status_code = Api.get_money(page, rows_per_page, order)
     return (jsonify(response), status_code, HEADER)
 
 
@@ -91,7 +85,7 @@ def post_money():
     if json_data is None:
         return jsonify({'error': 'Invalid JSON data'}), 400
 
-    response, status_code = Controller.post_money(json_data)
+    response, status_code = Api.post_money(json_data)
     return (jsonify(response), status_code, HEADER)
 # ----------------------------------------------------------------------------
 
@@ -99,7 +93,7 @@ def post_money():
 # ------------------ MONEY WITH ID---------------------------------------------
 @main_bp.route('/money/<string:money_id>', methods=['GET'])
 def get_money_by_id(money_id):
-    response, status_code = Controller.get_money_by_id(money_id)
+    response, status_code = Api.get_money_by_id(money_id)
     return (jsonify(response), status_code, HEADER)
 
 
@@ -110,18 +104,18 @@ def put_money_by_id(money_id):
     if json_data is None:
         return jsonify({'error': 'Invalid JSON data'}), 400
 
-    response, status_code = Controller.put_money_by_id(money_id, json_data)
+    response, status_code = Api.put_money_by_id(money_id, json_data)
     return (jsonify(response), status_code, HEADER)
 
 
 @main_bp.route('/money/<string:money_id>', methods=['PATCH'])
 def patch_money_by_id(money_id):
-    response, status_code = Controller.patch_money_by_id(money_id)
+    response, status_code = Api.patch_money_by_id(money_id)
     return (jsonify(response), status_code, HEADER)
 
 
 @main_bp.route('/money/<string:money_id>', methods=['DELETE'])
 def delete_money_by_id(money_id):
-    response, status_code = Controller.delete_money_by_id(money_id)
+    response, status_code = Api.delete_money_by_id(money_id)
     return (jsonify(response), status_code, HEADER)
 # ----------------------------------------------------------------------------

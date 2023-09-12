@@ -1,7 +1,7 @@
 import requests
 import random
 
-subjects = ['car', 'house', 'book', 'sofa', 'plane', 'gift', 'oskar', 'PC',
+subjects = ['автомо', 'house', 'book', 'sofa', 'plane', 'gift', 'oskar', 'PC',
             'notebook', 'paper', 'router', 'pen', 'TV', 'phone', 'job',
             'lamp', 'cat', 'dog', 'eggs', 'test_item', 'milk', 'coffee']
 
@@ -33,6 +33,29 @@ def generete_data(subjects):
     return test_data
 
 
+test_row = {
+        'rows': [
+            {
+                'position': 1,
+                'subject': 'стул',
+                'count': 3,
+                'price': 5000.0
+            },
+            {
+                'position': 2,
+                'subject': 'дверь',
+                'count': 1,
+                'price': 7000.0
+            },
+            {
+                'position': 3,
+                'subject': 'окно',
+                'count': 4,
+                'price': 12000.0
+            },
+
+        ]
+    }
 test_money = {
     'is_report_not_need': False,
     'subject': 'Car',
@@ -71,9 +94,9 @@ def put_application(json_data):
     response = requests.put(url, json=json_data)
 
     if response.status_code == 200:
-        print("Success:", response.json())
+        print(response.json())
     else:
-        print("Error:", response.status_code, response.text)
+        print(response.status_code, response.text)
 
 
 def patch_application():
@@ -120,5 +143,4 @@ def put_money_by_id(json_data):
 
 
 if __name__ == '__main__':
-    # Тут прописать нужную функцию
-    post_new_application(generete_data(subjects))
+    post_new_application(test_row)
