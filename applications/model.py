@@ -7,10 +7,6 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100))
 
-    @classmethod
-    def get_fields_list(cls):
-        return {'id', 'username'}
-
 
 class StuffApplications(db.Model):
     id = db.Column(db.String(36), primary_key=True, unique=True)
@@ -18,13 +14,8 @@ class StuffApplications(db.Model):
     is_accepted = db.Column(db.Boolean, default=False)
     total_sum = db.Column(db.Float)
 
-    # Указываем autor_id как ForeignKey и ссылаемся на модель Users
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users')
-
-    @classmethod
-    def get_fields_list(cls):
-        return {'id', 'date', 'is_accepted', 'total_sum', 'author_id'}
 
 
 class StuffApplicationRows(db.Model):

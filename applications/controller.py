@@ -64,7 +64,6 @@ def get_stuff_applications(page: int, rows_per_page: int, order: str):
 
     items = query.all()
 
-
     result = {
         'page': page,
         'rows_per_page': rows_per_page,
@@ -99,10 +98,9 @@ def post_stuff_application(json_data):
     for row in rows:
         new_row = StuffRow(stuff_application_id=new_app.id, **row)
         new_row_db = StuffApplicationRows(**asdict(new_row))
-        total_sum += row["price"] * row["count"]
+        new_app_db.total_sum += row["price"] * row["count"]
         db.session.add(new_row_db)
 
-    new_app_db.total_sum = total_sum
     try:
         db.session.commit()
     except db.exc.IntegrityError:
@@ -153,79 +151,79 @@ def get_stuff_application_by_id(app_id: str):
 
 def put_stuff_application_by_id(app_id: str, json_data):
     stuff_app = StuffApplications.query.get(app_id)
-
-    # Обработка 404 ошибки
     if not stuff_app:
         return {'error': 'Not found'}, 404
 
-    # Обработка 405 ошибки
     if stuff_app.is_accepted:
         return {'error': 'Editing is prohibited'}, 405
 
-    # Удаляем старые строки товаров -----------------------------------------
     stuff_rows = (StuffApplicationRows.query
                   .filter_by(stuff_application_id=stuff_app.id)
                   .order_by(StuffApplicationRows.position)
                   .all())
     for row in stuff_rows:
         db.session.delete(row)
-    db.session.commit()
-    # -----------------------------------------------------------------------
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return {'error': 'Error while deleting'}, 500
 
     rows = json_data['rows']
     total_sum = 0
-    # Записываем в базу данных StuffApplicationRows новые строки ------------
     for row in rows:
-        new_row = StuffApplicationRows()
-        new_row.id = str(uuid.uuid4())
-        new_row.stuff_application_id = stuff_app.id
-        new_row.position = row["position"]
-        new_row.subject = row["subject"]
-        new_row.price = row["price"]
-        new_row.count = row["count"]
+        new_row = StuffRow(stuff_application_id=stuff_app.id, **row)
+        new_row_db = StuffApplicationRows(**asdict(new_row))
         total_sum += row["price"] * row["count"]
-        db.session.add(new_row)
-    # -----------------------------------------------------------------------
+        db.session.add(new_row_db)
 
     stuff_app.total_sum = total_sum
     stuff_app.date = datetime.now(tz)
-    db.session.commit()
 
-    # используем уже написанную ранее функция для ответа
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return {'error': 'Error while deleting'}, 500
+
     return get_stuff_application_by_id(stuff_app.id)
 
 
 def patch_stuff_application_by_id(app_id: str):
     stuff_app = StuffApplications.query.get(app_id)
-
-    # Обработка 404 ошибки
     if not stuff_app:
         return {'error': 'Not found'}, 404
 
-    stuff_app.is_accepted = True
-    db.session.commit()
-    result = get_stuff_application_by_id(stuff_app.id)
-    return result
+    try:
+        stuff_app.is_accepted = True
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return {'error', 'Database error'}
+
+    return get_stuff_application_by_id(stuff_app.id)
 
 
 def delete_stuff_application_by_id(app_id: str):
-    '''Удаляем карточу и связанные с ней строки'''
     stuff_app = StuffApplications.query.get(app_id)
-
-    # Обработка 404 ошибки
     if not stuff_app:
         return {'error': 'Not found'}, 404
-    current_id = stuff_app.id
-
-    db.session.delete(stuff_app)
 
     stuff_rows = (StuffApplicationRows.query
-                  .filter_by(stuff_application_id=current_id)
-                  .order_by(StuffApplicationRows.position)
+                  .filter_by(stuff_application_id=stuff_app.id)
                   .all())
+
     for row in stuff_rows:
         db.session.delete(row)
-    db.session.commit()
+
+    try:
+        db.session.delete(stuff_app)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return {'error': 'Error while deleting'}, 500
+
     return {'Success': True}, 200
 
 
