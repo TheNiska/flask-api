@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from applications import db
+from application import db
 
 
 class Users(db.Model):

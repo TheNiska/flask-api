@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from applications import app
+from application import app
 from flask import Blueprint, request, jsonify
-from applications.controller import Api
+from application.controller import Api
 
-main_bp = Blueprint('main_bp', __name__, url_prefix="/applications")
+main_bp = Blueprint('main_bp', __name__, url_prefix="/api")
 HEADER = {'Content-Type': 'application/json; charset=utf-8'}
 
 

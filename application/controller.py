@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from applications import db
-from applications.model import (Users,
-                                StuffApplications,
-                                StuffApplicationRows,
-                                MoneyApplications,
-                                DBFuncs)
+from application import db
+from application.model import (Users,
+                               StuffApplications,
+                               StuffApplicationRows,
+                               MoneyApplications,
+                               DBFuncs)
 import uuid
 from datetime import datetime
 from pytz import timezone
@@ -67,10 +67,6 @@ class Api:
     def get_stuff_applications(cls, page: int, rows_per_page: int, order: str):
         query = cls._get_ordered_query(StuffApplications, order)
         pagination = query.paginate(page=page, per_page=rows_per_page)
-
-        reslt_str = f"{pagination.page}\n{pagination.per_page}\n" \
-                    f"{pagination.total}\n{pagination.pages}"
-        print(reslt_str)
 
         result = {
             'page': page,
