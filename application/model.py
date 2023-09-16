@@ -62,6 +62,20 @@ class MoneyApplications(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users')
 
+    def to_json(self):
+        json = {
+            'id': self.id,
+            'date': self.date.strftime('%d.%m.%Y'),
+            'is_accepted': self.is_accepted,
+            'is_issued': self.is_issued,
+            'amount': self.amount,
+            'author': {
+                'id': self.author.id,
+                'username': self.author.username
+            }
+        }
+        return json
+
 
 class DBFuncs:
     @classmethod
