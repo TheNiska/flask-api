@@ -6,9 +6,11 @@ from application.model import (Users,
                                MoneyApplications,
                                DBFuncs)
 import uuid
-from datetime import datetime
+import datetime
 from pytz import timezone
-from dataclasses import dataclass, asdict
+from pydantic.dataclasses import dataclass
+from pydantic import ValidationError
+from dataclasses import asdict
 import random
 
 
@@ -18,7 +20,7 @@ tz = timezone('Europe/Moscow')
 @dataclass(kw_only=True)
 class Stuff:
     id: str = None
-    date: str = None
+    date: datetime.date = None
     is_accepted: bool = False
     total_sum: float = 0
     author_id: int
@@ -27,7 +29,7 @@ class Stuff:
         if self.id is None:
             self.id = str(uuid.uuid4())
         if self.date is None:
-            self.date = datetime.now(tz)
+            self.date = datetime.datetime.now(tz)
 
 
 @dataclass(kw_only=True)
@@ -99,7 +101,12 @@ class Api:
 
         total_sum = 0
         for row in rows:
-            new_row = StuffRow(stuff_application_id=new_app.id, **row)
+            try:
+                new_row = StuffRow(stuff_application_id=new_app.id, **row)
+            except ValidationError as err:
+                db.session.rollback()
+                return {'error': err.errors()}, 500
+
             new_row_db = StuffApplicationRows(**asdict(new_row))
             new_app_db.total_sum += row["price"] * row["count"]
             db.session.add(new_row_db)
@@ -113,7 +120,7 @@ class Api:
             db.session.rollback()
             return {'error': 'Error while writing to database'}, 500
 
-        return get_stuff_application_by_id(new_app.id)
+        return cls.get_stuff_application_by_id(new_app.id)
 
     @classmethod
     def get_stuff_application_by_id(cls, app_id: str):
@@ -190,7 +197,7 @@ class Api:
             db.session.rollback()
             return {'error': 'Error while deleting'}, 500
 
-        return get_stuff_application_by_id(stuff_app.id)
+        return cls.get_stuff_application_by_id(stuff_app.id)
 
     @classmethod
     def patch_stuff_application_by_id(cls, app_id: str):
@@ -205,7 +212,7 @@ class Api:
             db.session.rollback()
             return {'error', 'Database error'}
 
-        return get_stuff_application_by_id(stuff_app.id)
+        return cls.get_stuff_application_by_id(stuff_app.id)
 
     @classmethod
     def delete_stuff_application_by_id(cls, app_id: str):
@@ -342,7 +349,7 @@ class Api:
         money.amount = json_data['amount']
         money.date = datetime.now(cls.tz)
         db.session.commit()
-        return get_money_by_id(money.id)
+        return cls.get_money_by_id(money.id)
 
     @classmethod
     def patch_money_by_id(cls, money_id: str):
@@ -354,7 +361,7 @@ class Api:
 
         money.is_accepted = True
         db.session.commit()
-        return get_money_by_id(money.id)
+        return cls.get_money_by_id(money.id)
 
     @classmethod
     def delete_money_by_id(cls, money_id: str):

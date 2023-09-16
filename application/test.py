@@ -37,21 +37,21 @@ test_row = {
         'rows': [
             {
                 'position': 1,
-                'subject': 'стул',
-                'count': 3,
-                'price': 5000.0
+                'subject': 'ОС',
+                'count': 'ten',
+                'price': 2000.0
             },
             {
                 'position': 2,
-                'subject': 'дверь',
-                'count': 1,
-                'price': 7000.0
+                'subject': 'антивирус',
+                'count': 10,
+                'price': 1000.0
             },
             {
                 'position': 3,
-                'subject': 'окно',
-                'count': 4,
-                'price': 12000.0
+                'subject': 'диск',
+                'count': 1,
+                'price': 400.0
             },
 
         ]
@@ -79,11 +79,11 @@ test_money3 = {
 
 
 def post_new_application(json_data):
-    url = "http://192.168.0.10:5000/applications/stuff"
+    url = "http://192.168.0.10:5000/api/stuff"
     response = requests.post(url, json=json_data)
 
     if response.status_code == 200:
-        print("Success:", response.json())
+        print(response.json())
     else:
         print("Error:", response.status_code, response.text)
 
