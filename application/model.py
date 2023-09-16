@@ -16,6 +16,19 @@ class StuffApplications(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users')
 
+    def to_json(self):
+        json = {
+            'id': self.id,
+            'date': self.date.strftime('%d.%m.%Y'),
+            'is_accepted': self.is_accepted,
+            'total_sum': self.total_sum,
+            'author': {
+                'id': self.author.id,
+                'username': self.author.username
+            }
+        }
+        return json
+
 
 class StuffApplicationRows(db.Model):
     id = db.Column(db.String(36), primary_key=True, unique=True)
@@ -24,6 +37,15 @@ class StuffApplicationRows(db.Model):
     subject = db.Column(db.String(150))
     count = db.Column(db.Integer)
     price = db.Column(db.Float)
+
+    def to_json(self):
+        json = {
+            'position': self.position,
+            'subject': self.subject,
+            'count': self.count,
+            'price': self.price
+        }
+        return json
 
 
 class MoneyApplications(db.Model):

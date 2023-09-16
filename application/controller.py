@@ -73,19 +73,7 @@ class Api:
         result = {
             'page': page,
             'rows_per_page': rows_per_page,
-            'data': [
-                {
-                    'id': item.id,
-                    'date': item.date.strftime('%d.%m.%Y'),
-                    'is_accepted': item.is_accepted,
-                    'total_sum': item.total_sum,
-                    'author': {
-                        'id': item.author.id,
-                        'username': item.author.username
-                    }
-                }
-                for item in pagination.items
-            ]
+            'data': [item.to_json() for item in pagination.items]
         }
 
         return result, 200
@@ -135,26 +123,8 @@ class Api:
                       .order_by(StuffApplicationRows.position)
                       .all())
 
-        result = {
-            'id': stuff_app.id,
-            'date': stuff_app.date.strftime('%d.%m.%Y'),
-            'is_accepted': stuff_app.is_accepted,
-            'total_sum': stuff_app.total_sum,
-            'author': {
-                'id': stuff_app.author.id,
-                'username': stuff_app.author.username
-            },
-            'rows': [
-                {
-                    'position': item.position,
-                    'subject': item.subject,
-                    'count': item.count,
-                    'price': item.price
-
-                }
-                for item in stuff_rows
-            ]
-        }
+        result = stuff_app.to_json()
+        result['rows'] = [row.to_json() for row in stuff_rows]
 
         return result, 200
 
