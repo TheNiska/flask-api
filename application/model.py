@@ -58,11 +58,10 @@ class MoneyApplications(db.Model):
     amount = db.Column(db.Float)
     report_file_name = db.Column(db.Text(64), unique=True, default=None)
 
-    # Указываем autor_id как ForeignKey и ссылаемся на модель Users
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('Users')
 
-    def to_json(self):
+    def to_json(self, full=False):
         json = {
             'id': self.id,
             'date': self.date.strftime('%d.%m.%Y'),
@@ -74,6 +73,10 @@ class MoneyApplications(db.Model):
                 'username': self.author.username
             }
         }
+        if full:
+            json['is_report_not_need'] = self.is_report_not_need
+            json['report_file_name'] = self.report_file_name
+
         return json
 
 

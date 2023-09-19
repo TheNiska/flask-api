@@ -14,8 +14,12 @@ from dataclasses import asdict
 import random
 from flask import abort
 
+# ----------------------------------------------------------------------------
+'''Pydantic dataclasses with validation and initialization of default values.
+They are here because I don't know a way (if there any) to directly integrate
+them into ORM-classes.'''
 
-# Pydantic dataclasses with validation ---------------------------------------
+
 @dataclass(kw_only=True)
 class Stuff:
     id: str = None
@@ -239,104 +243,90 @@ class Api:
 
     @classmethod
     def post_money(cls, json_data):
-        author_id = cls._get_random_user()
+        usr_id = cls._get_random_user()
 
-        new_uuid = str(uuid.uuid4())
+        try:
+            money_dc = MoneyDC(author_id=usr_id, **json_data)
+        except ValidationError as err:
+            db.session.rollback()
+            abort(500, {'error': err.errors()})
 
-        new_money = MoneyApplications()
-        new_money.id = new_uuid
-        new_money.date = datetime.now(cls.tz)
-        new_money.is_report_not_need = json_data['is_report_not_need']
-        new_money.subject = json_data['subject']
-        new_money.amount = json_data['amount']
-        new_money.author_id = author_id
+        money = MoneyApplications(**asdict(money_dc))
 
-        db.session.add(new_money)
-        db.session.commit()
+        try:
+            db.session.add(money)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            abort(500)
 
-        money = MoneyApplications.query.get(new_uuid)
-        result = {
-            'id': money.id,
-            'date': money.date.strftime('%d.%m.%Y'),
-            'is_accepted': money.is_accepted,
-            'is_issued': money.is_issued,
-            'is_report_not_need': money.is_report_not_need,
-            'report_file_name': money.report_file_name,
-            'amount': money.amount,
-            'author': {
-                'id': money.author.id,
-                'username': money.author.username
-            }
-        }
-
-        return result, 200
+        return cls.get_money_by_id(money_dc.id)
 
     @classmethod
     def get_money_by_id(cls, money_id: str):
         money = MoneyApplications.query.get(money_id)
-
-        # Обработка 404 ошибки
         if not money:
-            return {'error': 'Not found'}, 404
+            abort(404)
 
-        result = {
-            'id': money.id,
-            'date': money.date.strftime('%d.%m.%Y'),
-            'is_accepted': money.is_accepted,
-            'is_issued': money.is_issued,
-            'is_report_not_need': money.is_report_not_need,
-            'report_file_name': money.report_file_name,
-            'amount': money.amount,
-            'author': {
-                'id': money.author.id,
-                'username': money.author.username
-            }
-        }
-
+        result = money.to_json(full=True)
         return result, 200
 
     @classmethod
     def put_money_by_id(cls, money_id: str, json_data):
-        '''Обновляется ли дата'''
         money = MoneyApplications.query.get(money_id)
-
-        # Обработка 404 ошибки
         if not money:
-            return {'error': 'Not found'}, 404
+            abort(404)
 
-        # Обработка 405 ошибки
         if money.is_accepted:
-            return {'error': 'Editing is prohibited'}, 405
+            abort(405)
 
-        money.is_report_not_need = json_data['is_report_not_need']
-        money.subject = json_data['subject']
-        money.amount = json_data['amount']
-        money.date = datetime.now(cls.tz)
-        db.session.commit()
+        try:
+            money_dc = MoneyDC(**json_data)
+        except ValidationError as err:
+            db.session.rollback()
+            abort(500, {'error': err.errors()})
+
+        money.is_report_not_need = money_dc.is_report_not_need
+        money.subject = money_dc.subject
+        money.amount = money_dc.amount
+        money.date = money_dc.date
+
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            abort(500)
+
         return cls.get_money_by_id(money.id)
 
     @classmethod
     def patch_money_by_id(cls, money_id: str):
         money = MoneyApplications.query.get(money_id)
-
-        # Обработка 404 ошибки
         if not money:
-            return {'error': 'Not found'}, 404
+            abort(404)
 
         money.is_accepted = True
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            abort(500)
+
         return cls.get_money_by_id(money.id)
 
     @classmethod
     def delete_money_by_id(cls, money_id: str):
         money = MoneyApplications.query.get(money_id)
-
-        # Обработка 404 ошибки
         if not money:
-            return {'error': 'Not found'}, 404
+            abort(404)
 
-        db.session.delete(money)
-        db.session.commit()
+        try:
+            db.session.delete(money)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            abort(500)
+
         return {'Success': True}, 200
 
     @classmethod
