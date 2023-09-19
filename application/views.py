@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from application import app
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, abort
 from application.controller import Api
 
 main_bp = Blueprint('main_bp', __name__, url_prefix="/api")
@@ -19,18 +19,17 @@ def get_stuff_applications():
     response, status_code = (Api.get_stuff_applications(page,
                              rows_per_page, order))
 
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 
 
 @main_bp.route('/stuff', methods=['POST'])
 def post_stuff_application():
-    json_data = request.get_json()
-
-    if json_data is None:
-        return jsonify({'error': 'Invalid JSON data'}), 400
+    json_data = request.get_json(silent=True)
+    if not json_data:
+        abort(400)
 
     response, status_code = Api.post_stuff_application(json_data)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 # ----------------------------------------------------------------------------
 
 
@@ -38,32 +37,31 @@ def post_stuff_application():
 @main_bp.route('/stuff/<string:app_id>', methods=['GET'])
 def get_stuff_application_by_id(app_id):
     response, status_code = Api.get_stuff_application_by_id(app_id)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 
 
 @main_bp.route('/stuff/<string:app_id>', methods=['PUT'])
 def put_stuff_application_by_id(app_id):
-    json_data = request.get_json()
-
-    if json_data is None:
-        return jsonify({'error': 'Invalid JSON data'}), 400
+    json_data = request.get_json(silent=True)
+    if not json_data:
+        abort(400)
 
     response, status_code = (Api
                              .put_stuff_application_by_id(app_id, json_data))
 
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 
 
 @main_bp.route('/stuff/<string:app_id>', methods=['PATCH'])
 def patch_stuff_application_by_id(app_id):
     response, status_code = Api.patch_stuff_application_by_id(app_id)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 
 
 @main_bp.route('/stuff/<string:app_id>', methods=['DELETE'])
 def delete_stuff_application_by_id(app_id):
     response, status_code = Api.delete_stuff_application_by_id(app_id)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 # ----------------------------------------------------------------------------
 
 
@@ -75,18 +73,17 @@ def get_money():
     order = request.args.get('order', 'date')
 
     response, status_code = Api.get_money(page, rows_per_page, order)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 
 
 @main_bp.route('/money', methods=['POST'])
 def post_money():
-    json_data = request.get_json()
-
-    if json_data is None:
-        return jsonify({'error': 'Invalid JSON data'}), 400
+    json_data = request.get_json(silent=True)
+    if not json_data:
+        abort(400)
 
     response, status_code = Api.post_money(json_data)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 # ----------------------------------------------------------------------------
 
 
@@ -94,28 +91,27 @@ def post_money():
 @main_bp.route('/money/<string:money_id>', methods=['GET'])
 def get_money_by_id(money_id):
     response, status_code = Api.get_money_by_id(money_id)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 
 
 @main_bp.route('/money/<string:money_id>', methods=['PUT'])
 def put_money_by_id(money_id):
-    json_data = request.get_json()
-
-    if json_data is None:
-        return jsonify({'error': 'Invalid JSON data'}), 400
+    json_data = request.get_json(silent=True)
+    if not json_data:
+        abort(400)
 
     response, status_code = Api.put_money_by_id(money_id, json_data)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 
 
 @main_bp.route('/money/<string:money_id>', methods=['PATCH'])
 def patch_money_by_id(money_id):
     response, status_code = Api.patch_money_by_id(money_id)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 
 
 @main_bp.route('/money/<string:money_id>', methods=['DELETE'])
 def delete_money_by_id(money_id):
     response, status_code = Api.delete_money_by_id(money_id)
-    return (jsonify(response), status_code, HEADER)
+    return jsonify(response), status_code, HEADER
 # ----------------------------------------------------------------------------
